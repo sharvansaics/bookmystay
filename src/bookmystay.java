@@ -1,50 +1,57 @@
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
-public class BookMyStay {
+class InventoryData implements Serializable {
+    Map<String, Integer> inventory;
+
+    public InventoryData(Map<String, Integer> inventory) {
+        this.inventory = inventory;
+    }
+}
+
+class PersistenceService {
+    private static final String FILE = "inventory.dat";
+
+    public static Map<String, Integer> loadInventory() {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(FILE))) {
+            InventoryData data = (InventoryData) in.readObject();
+            return data.inventory;
+        } catch (Exception e) {
+            System.out.println("No valid inventory data found. Starting fresh.");
+            return null;
+        }
+    }
+
+    public static void saveInventory(Map<String, Integer> inventory) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(FILE))) {
+            out.writeObject(new InventoryData(inventory));
+            System.out.println("Inventory saved successfully.");
+        } catch (IOException e) {
+            System.out.println("Error saving inventory.");
+        }
+    }
+}
+
+public class bookmystay {
 
     public static void main(String[] args) {
-        // 1️⃣ Display welcome banner
-        System.out.println("===================================");
-        System.out.println(" Welcome to BookMyStay Application ");
-        System.out.println(" Version: 1.0.0 ");
-        System.out.println("===================================");
 
-        // 2️⃣ Ask for user name
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Please enter your name: ");
-        String userName = scanner.nextLine();
+        System.out.println("System Recovery");
 
-        // 3️⃣ Greet user
-        System.out.println("Hello, " + userName + "! Thank you for choosing BookMyStay.");
+        Map<String, Integer> inventory = PersistenceService.loadInventory();
 
-        // 4️⃣ Show main menu
-        System.out.println("\nWhat would you like to do?");
-        System.out.println("1. View Hotels");
-        System.out.println("2. Book a Room");
-        System.out.println("3. Exit");
-
-        System.out.print("Enter your choice (1-3): ");
-        int choice = scanner.nextInt();
-
-        // 5️⃣ Handle menu choice
-        switch (choice) {
-            case 1:
-                System.out.println("Fetching available hotels...");
-                // Future: call method to display hotels
-                break;
-            case 2:
-                System.out.println("Redirecting to booking module...");
-                // Future: call booking logic
-                break;
-            case 3:
-                System.out.println("Thank you! Exiting application.");
-                break;
-            default:
-                System.out.println("Invalid choice! Please restart the application.");
+        if (inventory == null) {
+            inventory = new LinkedHashMap<>();
+            inventory.put("Single", 5);
+            inventory.put("Double", 3);
+            inventory.put("Suite", 2);
         }
 
-        // 6️⃣ Close scanner and terminate
-        scanner.close();
-        System.out.println("Application has terminated.");
+        System.out.println("Current Inventory:");
+        for (String type : inventory.keySet()) {
+            System.out.println(type + ": " + inventory.get(type));
+        }
+
+        PersistenceService.saveInventory(inventory);
     }
 }
