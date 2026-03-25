@@ -3,109 +3,78 @@ import java.util.*;
 /**
  * --- DOMAIN LAYER ---
  */
-abstract class Room {
-    private String type;
-    private double price;
-
-    public Room(String type, double price) {
-        this.type = type;
-        this.price = price;
-    }
-    public String getType() { return type; }
-}
-
-class SingleRoom extends Room { public SingleRoom() { super("Single", 100.0); } }
-class DoubleRoom extends Room { public DoubleRoom() { super("Double", 180.0); } }
-class SuiteRoom  extends Room { public SuiteRoom()  { super("Suite",  350.0); } }
-
-/**
- * --- DATA & STATE LAYER ---
- */
-class Reservation {
+class ConfirmedBooking {
+    private String reservationId;
     private String guestName;
     private String roomType;
+    private double totalCost;
 
-    public Reservation(String name, String type) {
+    public ConfirmedBooking(String id, String name, String type, double cost) {
+        this.reservationId = id;
         this.guestName = name;
         this.roomType = type;
+        this.totalCost = cost;
     }
-    public String getGuestName() { return guestName; }
-    public String getRoomType() { return roomType; }
-}
 
-class RoomInventory {
-    private Map<String, Integer> stock = new HashMap<>();
-
-    public void addStock(String type, int count) { stock.put(type, count); }
-    public int getCount(String type) { return stock.getOrDefault(type, 0); }
-    public void updateStock(String type, int delta) {
-        stock.put(type, getCount(type) + delta);
+    @Override
+    public String toString() {
+        return String.format("ID: %-10s | Guest: %-10s | Room: %-8s | Total: $%.2f",
+                reservationId, guestName, roomType, totalCost);
     }
 }
 
 /**
- * --- SERVICE LAYER ---
+ * --- HISTORY & REPORTING SERVICE ---
  */
-class AllocationService {
-    private RoomInventory inventory;
-    private Queue<Reservation> queue = new LinkedList<>();
-    // Set ensures no two guests get the same Room ID
-    private Set<String> assignedRoomIds = new HashSet<>();
+class BookingHistory {
+    // List preserves the chronological order of confirmations
+    private List<ConfirmedBooking> history = new ArrayList<>();
 
-    public AllocationService(RoomInventory inventory) {
-        this.inventory = inventory;
+    public void recordBooking(ConfirmedBooking booking) {
+        history.add(booking);
     }
 
-    public void enqueueRequest(Reservation res) {
-        queue.add(res);
-        System.out.println("[QUEUE] Added request for " + res.getGuestName());
-    }
-
-    public void processAllocations() {
-        System.out.println("\n--- Processing Reservations ---");
-        while (!queue.isEmpty()) {
-            Reservation res = queue.poll(); // FIFO: First in, first out
-            String type = res.getRoomType();
-
-            if (inventory.getCount(type) > 0) {
-                // Logic: Generate a unique ID based on current Set size
-                String roomId = type.toUpperCase() + "-" + (100 + assignedRoomIds.size());
-
-                if (assignedRoomIds.add(roomId)) {
-                    inventory.updateStock(type, -1);
-                    System.out.println("SUCCESS: " + res.getGuestName() + " booked " + roomId);
-                }
-            } else {
-                System.out.println("FAILED: No " + type + " rooms left for " + res.getGuestName());
+    public void generateAdminReport() {
+        System.out.println("\n========== ADMINISTRATIVE BOOKING REPORT ==========");
+        if (history.isEmpty()) {
+            System.out.println("No confirmed bookings found.");
+        } else {
+            double totalRevenue = 0;
+            for (ConfirmedBooking b : history) {
+                System.out.println(b);
+                // In a real app, we'd extract cost from the object
+                // For this report, we'll just sum them up
             }
+            System.out.println("==================================================");
+            System.out.println("Total Transactions: " + history.size());
         }
-        System.out.println("--- Processing Complete ---\n");
     }
 }
 
 /**
- * --- MAIN ENTRY POINT ---
+ * --- APPLICATION ENTRY POINT ---
  */
-public class BookMyStay {
+public class bookMyStay {
     public static void main(String[] args) {
-        // 1. Setup Inventory
-        RoomInventory inventory = new RoomInventory();
-        inventory.addStock("Single", 2);
-        inventory.addStock("Suite", 1); // Only one luxury suite!
+        // 1. Initialize History Service
+        BookingHistory historyService = new BookingHistory();
 
-        // 2. Setup Service
-        AllocationService allocationService = new AllocationService(inventory);
+        System.out.println("System: Processing Confirmed Transactions...\n");
 
-        // 3. Simulate High-Demand Intake
-        allocationService.enqueueRequest(new Reservation("Alice", "Suite"));
-        allocationService.enqueueRequest(new Reservation("Bob", "Suite")); // Should fail
-        allocationService.enqueueRequest(new Reservation("Charlie", "Single"));
-        allocationService.enqueueRequest(new Reservation("David", "Single"));
+        // 2. Simulate confirming bookings (Logic from Use Case 6 & 7)
+        // In a real flow, these would be added automatically after allocation
+        ConfirmedBooking b1 = new ConfirmedBooking("SUITE-101", "Alice", "Suite", 495.00);
+        ConfirmedBooking b2 = new ConfirmedBooking("SINGL-102", "Charlie", "Single", 125.00);
+        ConfirmedBooking b3 = new ConfirmedBooking("SINGL-103", "David", "Single", 100.00);
 
-        // 4. Run Allocation
-        allocationService.processAllocations();
+        // 3. Record to History (The Audit Trail)
+        historyService.recordBooking(b1);
+        historyService.recordBooking(b2);
+        historyService.recordBooking(b3);
 
-        // 5. Final Status
-        System.out.println("Final Suite Stock: " + inventory.getCount("Suite"));
+        // 4. Admin requests a report
+        historyService.generateAdminReport();
+
+        System.out.println("\nNote: History is stored in-memory and persists for the application lifetime.");
     }
 }
