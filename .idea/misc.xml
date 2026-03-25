@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
 <<<<<<< HEAD
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" languageLevel="JDK_25" default="true" project-jdk-name="25" project-jdk-type="JavaSDK">
 =======
   <component name="ProjectRootManager" version="2" default="true" project-jdk-name="25" project-jdk-type="JavaSDK">
 >>>>>>> 2b45188feeae2823b20710f096680605a758db4b
+=======
+  <component name="ProjectRootManager" version="2" default="true" project-jdk-name="25" project-jdk-type="JavaSDK">
+>>>>>>> c8d5fb43bfb7ef8438a1544a3f2b613a4457bae2
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
