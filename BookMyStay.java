@@ -1,25 +1,32 @@
 /**
- * The HotelBookingApplication class serves as the entry point for the
- * Hotel Booking System. It initializes the application and displays
- * versioning information to the user.
- * * @author User
- * @version 1.0
+ * Abstract class representing a generic Room.
+ * Defines the shared structure for all specialized room types.
  */
-public class HotelBookingApplication {
+abstract class Room {
+    private String roomType;
+    private int numBeds;
+    private double pricePerNight;
 
-    /**
-     * The main method is the starting point of the program.
-     * The JVM searches for this specific signature to launch the app.
-     * * @param args Command-line arguments passed to the application.
-     */
-    public static void main(String[] args) {
-        // Step 1: Print the welcome message
-        System.out.println("Welcome to the Hotel Booking System!");
-
-        // Step 2: Display Application Name and Version
-        System.out.println("Application: Grand Stay Manager");
-        System.out.println("Version: 1.0.0-SNAPSHOT");
-
-        // Execution ends here, and the application terminates.
+    public Room(String roomType, int numBeds, double pricePerNight) {
+        this.roomType = roomType;
+        this.numBeds = numBeds;
+        this.pricePerNight = pricePerNight;
     }
+
+    public void displayDetails() {
+        System.out.println("Type: " + roomType + " | Beds: " + numBeds + " | Price: $" + pricePerNight);
+    }
+}
+
+// Concrete Implementations
+class SingleRoom extends Room {
+    public SingleRoom() { super("Single Room", 1, 100.0); }
+}
+
+class DoubleRoom extends Room {
+    public DoubleRoom() { super("Double Room", 2, 150.0); }
+}
+
+class SuiteRoom extends Room {
+    public SuiteRoom() { super("Luxury Suite", 3, 350.0); }
 }
