@@ -1,105 +1,79 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
- * --- DOMAIN LAYER ---
- * Abstract class representing the blueprint of a Room.
+ * Represents a guest's intent to book a specific room.
+ * This is a "Request" object, not a confirmed booking yet.
  */
-abstract class Room {
-    private String type;
-    private int beds;
-    private double price;
+class Reservation {
+    private String guestName;
+    private String roomType;
 
-    public Room(String type, int beds, double price) {
-        this.type = type;
-        this.beds = beds;
-        this.price = price;
+    public Reservation(String guestName, String roomType) {
+        this.guestName = guestName;
+        this.roomType = roomType;
     }
 
-    public String getType() { return type; }
-
-    public void displayDetails() {
-        System.out.println("[" + type + "] Beds: " + beds + " | Rate: $" + price + "/night");
-    }
-}
-
-class SingleRoom extends Room { public SingleRoom() { super("Single", 1, 100.0); } }
-class DoubleRoom extends Room { public DoubleRoom() { super("Double", 2, 180.0); } }
-class SuiteRoom  extends Room { public SuiteRoom()  { super("Suite",  3, 350.0); } }
-
-/**
- * --- INVENTORY LAYER ---
- * Manages the state (how many rooms are left).
- */
-class RoomInventory {
-    private Map<String, Integer> stock = new HashMap<>();
-
-    public void addStock(String type, int count) {
-        stock.put(type, count);
-    }
-
-    public int getAvailableCount(String type) {
-        return stock.getOrDefault(type, 0);
+    @Override
+    public String toString() {
+        return "Guest: " + guestName + " | Requested: " + roomType;
     }
 }
 
 /**
- * --- SERVICE LAYER ---
- * Logic for searching without mutating state.
+ * Manages incoming booking requests using a Queue (LinkedList).
+ * Ensures First-Come-First-Served fairness.
  */
-class SearchService {
-    private RoomInventory inventory;
-    private Map<String, Room> catalog;
+class BookingQueue {
+    private Queue<Reservation> requestQueue;
 
-    public SearchService(RoomInventory inventory, Map<String, Room> catalog) {
-        this.inventory = inventory;
-        this.catalog = catalog;
+    public BookingQueue() {
+        // LinkedList implements the Queue interface in Java
+        this.requestQueue = new LinkedList<>();
     }
 
-    public void showAvailableOptions() {
-        System.out.println("\n--- Live Room Availability ---");
-        boolean found = false;
+    /**
+     * Adds a new reservation request to the end of the line.
+     */
+    public void addRequest(Reservation request) {
+        requestQueue.add(request);
+        System.out.println("[INTAKE] " + request + " - Added to Queue.");
+    }
 
-        for (Room room : catalog.values()) {
-            int count = inventory.getAvailableCount(room.getType());
-
-            // Only show rooms that are actually in stock
-            if (count > 0) {
-                room.displayDetails();
-                System.out.println(">>> Vacancy: " + count + " rooms left.");
-                found = true;
+    /**
+     * Displays the current state of the queue without removing items.
+     */
+    public void showQueueStatus() {
+        System.out.println("\n--- Current Booking Request Queue ---");
+        if (requestQueue.isEmpty()) {
+            System.out.println("No pending requests.");
+        } else {
+            for (Reservation req : requestQueue) {
+                System.out.println(">> " + req);
             }
         }
-
-        if (!found) System.out.println("No rooms available at this time.");
-        System.out.println("-------------------------------\n");
+        System.out.println("-------------------------------------\n");
     }
 }
 
 /**
  * --- APPLICATION ENTRY POINT ---
  */
-public class UseCase4RoomSearch {
+public class BookMyStay {
     public static void main(String[] args) {
-        // 1. Initialize Objects (The "What")
-        Map<String, Room> catalog = new HashMap<>();
-        catalog.put("Single", new SingleRoom());
-        catalog.put("Double", new DoubleRoom());
-        catalog.put("Suite", new SuiteRoom());
+        // 1. Initialize the Queue
+        BookingQueue queueManager = new BookingQueue();
 
-        // 2. Initialize Inventory (The "How Many")
-        RoomInventory inventory = new RoomInventory();
-        inventory.addStock("Single", 5);
-        inventory.addStock("Double", 0); // Sold out!
-        inventory.addStock("Suite", 2);
+        System.out.println("Hotel Booking System: Accepting Requests...\n");
 
-        // 3. Initialize Search (The "Access")
-        SearchService search = new SearchService(inventory, catalog);
+        // 2. Simulate guests submitting requests at nearly the same time
+        queueManager.addRequest(new Reservation("Alice", "Suite"));
+        queueManager.addRequest(new Reservation("Bob", "Single"));
+        queueManager.addRequest(new Reservation("Charlie", "Suite"));
 
-        // 4. Execute
-        System.out.println("Welcome to Grand Stay Manager v1.0");
-        search.showAvailableOptions();
+        // 3. Show the order of requests
+        queueManager.showQueueStatus();
 
-        System.out.println("Search complete. No inventory was modified.");
+        System.out.println("Ready for processing. No rooms have been allocated yet.");
     }
 }
