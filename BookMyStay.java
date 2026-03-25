@@ -1,80 +1,91 @@
 import java.util.*;
 
 /**
- * --- DOMAIN LAYER ---
+ * --- CUSTOM EXCEPTIONS ---
+ * Domain-specific errors for better code readability and debugging.
  */
-class ConfirmedBooking {
-    private String reservationId;
-    private String guestName;
-    private String roomType;
-    private double totalCost;
+class InvalidRoomTypeException extends Exception {
+    public InvalidRoomTypeException(String message) { super(message); }
+}
 
-    public ConfirmedBooking(String id, String name, String type, double cost) {
-        this.reservationId = id;
-        this.guestName = name;
-        this.roomType = type;
-        this.totalCost = cost;
-    }
+class InsufficientInventoryException extends Exception {
+    public InsufficientInventoryException(String message) { super(message); }
+}
 
-    @Override
-    public String toString() {
-        return String.format("ID: %-10s | Guest: %-10s | Room: %-8s | Total: $%.2f",
-                reservationId, guestName, roomType, totalCost);
+/**
+ * --- VALIDATOR SERVICE ---
+ */
+class BookingValidator {
+    /**
+     * Fail-Fast Validation: Check constraints before any state changes.
+     */
+    public static void validateRequest(String type, Map<String, Integer> inventory)
+            throws InvalidRoomTypeException, InsufficientInventoryException {
+
+        // Rule 1: Room type must exist (Case Sensitive)
+        if (!inventory.containsKey(type)) {
+            throw new InvalidRoomTypeException("Error: Room type '" + type + "' does not exist.");
+        }
+
+        // Rule 2: Room must be in stock
+        if (inventory.get(type) <= 0) {
+            throw new InsufficientInventoryException("Error: No vacancy for '" + type + "'.");
+        }
     }
 }
 
 /**
- * --- HISTORY & REPORTING SERVICE ---
+ * --- CORE SYSTEM ---
  */
-class BookingHistory {
-    // List preserves the chronological order of confirmations
-    private List<ConfirmedBooking> history = new ArrayList<>();
+class HotelSystem {
+    private Map<String, Integer> inventory = new HashMap<>();
 
-    public void recordBooking(ConfirmedBooking booking) {
-        history.add(booking);
-    }
+    public void addInventory(String type, int count) { inventory.put(type, count); }
 
-    public void generateAdminReport() {
-        System.out.println("\n========== ADMINISTRATIVE BOOKING REPORT ==========");
-        if (history.isEmpty()) {
-            System.out.println("No confirmed bookings found.");
-        } else {
-            double totalRevenue = 0;
-            for (ConfirmedBooking b : history) {
-                System.out.println(b);
-                // In a real app, we'd extract cost from the object
-                // For this report, we'll just sum them up
-            }
-            System.out.println("==================================================");
-            System.out.println("Total Transactions: " + history.size());
+    public void processBooking(String guest, String type) {
+        System.out.println("[PROCESSING] " + guest + " requesting " + type + "...");
+
+        try {
+            // Step 1: Validate (Guarding System State)
+            BookingValidator.validateRequest(type, inventory);
+
+            // Step 2: Update State (Only if validation passes)
+            inventory.put(type, inventory.get(type) - 1);
+            System.out.println("SUCCESS: Booking confirmed for " + guest);
+
+        } catch (InvalidRoomTypeException | InsufficientInventoryException e) {
+            // Graceful Failure: Print message but keep the app running
+            System.err.println("REJECTED: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("CRITICAL: An unexpected error occurred.");
         }
+        System.out.println("-------------------------------------------");
     }
 }
 
 /**
  * --- APPLICATION ENTRY POINT ---
  */
-public class bookMyStay {
+public class BookMyStay {
     public static void main(String[] args) {
-        // 1. Initialize History Service
-        BookingHistory historyService = new BookingHistory();
+        HotelSystem hotel = new HotelSystem();
+        hotel.addInventory("Suite", 1);
+        hotel.addInventory("Single", 5);
 
-        System.out.println("System: Processing Confirmed Transactions...\n");
+        System.out.println("Hotel Booking System with Error Handling\n");
 
-        // 2. Simulate confirming bookings (Logic from Use Case 6 & 7)
-        // In a real flow, these would be added automatically after allocation
-        ConfirmedBooking b1 = new ConfirmedBooking("SUITE-101", "Alice", "Suite", 495.00);
-        ConfirmedBooking b2 = new ConfirmedBooking("SINGL-102", "Charlie", "Single", 125.00);
-        ConfirmedBooking b3 = new ConfirmedBooking("SINGL-103", "David", "Single", 100.00);
+        // Scenario 1: Valid Booking
+        hotel.processBooking("Alice", "Suite");
 
-        // 3. Record to History (The Audit Trail)
-        historyService.recordBooking(b1);
-        historyService.recordBooking(b2);
-        historyService.recordBooking(b3);
+        // Scenario 2: Insufficient Inventory (Double booking the last suite)
+        hotel.processBooking("Bob", "Suite");
 
-        // 4. Admin requests a report
-        historyService.generateAdminReport();
+        // Scenario 3: Invalid Room Type (Case Sensitive error or typo)
+        hotel.processBooking("Charlie", "suite"); // Lowercase 's' fails validation
 
-        System.out.println("\nNote: History is stored in-memory and persists for the application lifetime.");
+        // Scenario 4: Non-existent Room Type
+        hotel.processBooking("David", "Penthouse");
+
+        System.out.println("\nSystem remains stable. All errors were caught and handled.");
     }
 }
