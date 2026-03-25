@@ -2,18 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-<<<<<<< HEAD
-<<<<<<< HEAD
-      <module fileurl="file://$PROJECT_DIR$/.idea/CS706G2.iml" filepath="$PROJECT_DIR$/.idea/CS706G2.iml" />
-=======
-      <module fileurl="file://$PROJECT_DIR$/week1and2/bookmystay/bookmystay.iml" filepath="$PROJECT_DIR$/week1and2/bookmystay/bookmystay.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/cs706.iml" filepath="$PROJECT_DIR$/.idea/cs706.iml" />
-      <module fileurl="file://$PROJECT_DIR$/week1and2/week1and2.iml" filepath="$PROJECT_DIR$/week1and2/week1and2.iml" />
->>>>>>> 2b45188feeae2823b20710f096680605a758db4b
-=======
-      <module fileurl="file://$PROJECT_DIR$/.idea/bookmystay.iml" filepath="$PROJECT_DIR$/.idea/bookmystay.iml" />
-      <module fileurl="file://$PROJECT_DIR$/src/src.iml" filepath="$PROJECT_DIR$/src/src.iml" />
->>>>>>> c8d5fb43bfb7ef8438a1544a3f2b613a4457bae2
+      <module fileurl="file://$PROJECT_DIR$/BookMyStayApp.iml" filepath="$PROJECT_DIR$/BookMyStayApp.iml" />
     </modules>
   </component>
 </project>
