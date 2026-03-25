@@ -79,7 +79,7 @@ class SearchService {
 /**
  * --- APPLICATION ENTRY POINT ---
  */
-public class UseCase4RoomSearch {
+public class BookMyStay {
     public static void main(String[] args) {
         // 1. Initialize Objects (The "What")
         Map<String, Room> catalog = new HashMap<>();
